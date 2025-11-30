@@ -28,13 +28,13 @@
 [![Tkinter](https://img.shields.io/badge/GUI-Tkinter-green.svg)](https://docs.python.org/3/library/tkinter.html)
 [![License](https://img.shields.io/badge/License-Educational-yellow.svg)](#)
 
-> 📌 **Cette branche contient l'implémentation manuelle.** Pour la version utilisant Experta (bibliothèque professionnelle), voir la branche [`experta`](../../tree/experta).
+> **Cette branche contient l'implémentation manuelle.** Pour la version utilisant Experta (bibliothèque professionnelle), voir la branche [`experta`](../../tree/experta).
 
 </div>
 
 ---
 
-## 📋 Table des Matières
+## Table des Matières
 
 1. [Introduction](#-introduction)
 2. [Architecture du Projet](#-architecture-du-projet)
@@ -51,7 +51,7 @@
 
 ---
 
-## 🎯 Introduction
+## Introduction
 
 Ce projet implémente un **système expert** utilisant le **chaînage avant** (forward chaining) pour estimer la gamme de prix d'un ordinateur portable en fonction de ses spécifications techniques.
 
@@ -64,25 +64,25 @@ Ce projet implémente un **système expert** utilisant le **chaînage avant** (f
 
 ### Fonctionnalités
 
-- ✅ Questionnaire interactif (console et GUI)
-- ✅ 8 règles d'estimation de prix
-- ✅ Calcul de score de confiance
-- ✅ Interface graphique thème "Hacker"
-- ✅ Architecture modulaire
+- Questionnaire interactif (console et GUI)
+- 8 règles d'estimation de prix
+- Calcul de score de confiance
+- Interface graphique thème "Hacker"
+- Architecture modulaire
 
 ---
 
-## 🏗️ Architecture du Projet
+## Architecture du Projet
 
 ```
 systeme_expert/
 │
-├── 📄 main.py              # Point d'entrée console
-├── 📄 gui.py               # Interface graphique Tkinter
-├── 📄 base_faits.py        # Gestion des faits
-├── 📄 base_regles.py       # Gestion des règles
-├── 📄 moteur_inference.py  # Moteur d'inférence
-└── 📄 README.md            # Documentation
+├── main.py              # Point d'entrée console
+├── gui.py               # Interface graphique Tkinter
+├── base_faits.py        # Gestion des faits
+├── base_regles.py       # Gestion des règles
+├── moteur_inference.py  # Moteur d'inférence
+└── README.md            # Documentation
 ```
 
 ### Diagramme de l'Architecture
@@ -94,41 +94,41 @@ systeme_expert/
 └─────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
-┌─────────────────────────────────────────────────────────────────────┐
+┌──────────────────────────────────────────────────────────────────────┐
 │                      SYSTEME EXPERT PRINCIPAL                        │
 │                     (SystemeExpertPrixPC)                            │
-│  ┌─────────────────────────────────────────────────────────────────┐│
-│  │                    MOTEUR D'INFERENCE                           ││
-│  │                  (moteur_inference.py)                          ││
-│  │                                                                 ││
-│  │    ┌──────────────────┐         ┌──────────────────┐           ││
-│  │    │  BASE DE FAITS   │ ──────► │  BASE DE REGLES  │           ││
-│  │    │ (base_faits.py)  │         │ (base_regles.py) │           ││
-│  │    │                  │         │                  │           ││
-│  │    │ • Spécifications │         │ • 8 règles       │           ││
-│  │    │ • 11 critères    │         │ • Conditions     │           ││
-│  │    │ • 6 options bool │         │ • Prix           │           ││
-│  │    └──────────────────┘         └──────────────────┘           ││
-│  │                      │                     │                    ││
-│  │                      └──────────┬──────────┘                    ││
-│  │                                 ▼                               ││
-│  │                    ┌────────────────────────┐                   ││
-│  │                    │   CHAÎNAGE AVANT       │                   ││
-│  │                    │   (Forward Chaining)   │                   ││
-│  │                    └────────────────────────┘                   ││
-│  │                                 │                               ││
-│  │                                 ▼                               ││
-│  │                    ┌────────────────────────┐                   ││
-│  │                    │   ESTIMATIONS + SCORES │                   ││
-│  │                    │   DE CONFIANCE         │                   ││
-│  │                    └────────────────────────┘                   ││
-│  └─────────────────────────────────────────────────────────────────┘│
-└─────────────────────────────────────────────────────────────────────┘
+│  ┌─────────────────────────────────────────────────────────────────┐ │
+│  │                    MOTEUR D'INFERENCE                           │ │
+│  │                  (moteur_inference.py)                          │ │
+│  │                                                                 │ │
+│  │    ┌──────────────────┐         ┌──────────────────┐            │ │
+│  │    │  BASE DE FAITS   │ ──────► │  BASE DE REGLES  │            │ │
+│  │    │ (base_faits.py)  │         │ (base_regles.py) │            │ │
+│  │    │                  │         │                  │            │ │
+│  │    │ • Spécifications │         │ • 8 règles       │            │ │
+│  │    │ • 11 critères    │         │ • Conditions     │            │ │ 
+│  │    │ • 6 options bool │         │ • Prix           │            │ │
+│  │    └──────────────────┘         └──────────────────┘            │ │
+│  │                      │                     │                    │ │
+│  │                      └──────────┬──────────┘                    │ │
+│  │                                 ▼                               │ │
+│  │                    ┌────────────────────────┐                   │ │
+│  │                    │   CHAÎNAGE AVANT       │                   │ │
+│  │                    │   (Forward Chaining)   │                   │ │
+│  │                    └────────────────────────┘                   │ │
+│  │                                 │                               │ │
+│  │                                 ▼                               │ │
+│  │                    ┌────────────────────────┐                   │ │
+│  │                    │   ESTIMATIONS + SCORES │                   │ │
+│  │                    │   DE CONFIANCE         │                   │ │
+│  │                    └────────────────────────┘                   │ │
+│  └─────────────────────────────────────────────────────────────────┘ │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📚 Concepts Théoriques
+## Concepts Théoriques
 
 ### Qu'est-ce qu'un Système Expert ?
 
@@ -164,11 +164,11 @@ FAITS CONNUS ──► RÈGLES ──► CONCLUSIONS
 | Part des faits | Part des conclusions |
 | Données → But | But → Données |
 | "Que puis-je déduire ?" | "Comment prouver ce but ?" |
-| Utilisé ici ✅ | Non utilisé |
+| Utilisé ici | Non utilisé |
 
 ---
 
-## 📁 Structure des Fichiers
+## Structure des Fichiers
 
 ### 1. `base_faits.py` - Base de Faits
 
@@ -265,7 +265,7 @@ class SystemeExpertGUI:
 
 ---
 
-## 🚀 Installation
+## Installation
 
 ### Prérequis
 
@@ -291,7 +291,7 @@ cd systeme_expert_pc/
 
 ---
 
-## 💻 Utilisation
+## Utilisation
 
 ### Mode Console
 
@@ -336,7 +336,7 @@ L'interface graphique propose :
 
 ---
 
-## 📖 Description des Modules
+## Description des Modules
 
 ### Module `BaseFaits`
 
@@ -429,7 +429,7 @@ ENTRÉE: règle, faits_utilisateur
 
 ---
 
-## 📊 Base de Règles
+## Base de Règles
 
 ### Gammes de Prix
 
@@ -451,7 +451,7 @@ ENTRÉE: règle, faits_utilisateur
 
 ---
 
-## ⚙️ Algorithme d'Inférence
+## Algorithme d'Inférence
 
 ### Processus Complet du Chaînage Avant
 
@@ -516,9 +516,9 @@ Où :
 
 ---
 
-## 🎨 Interface Graphique
+## Interface Graphique
 
-### Thème Hacker/Cyberpunk
+### Thème Cyberpunk
 
 | Élément | Couleur | Code Hex |
 |---------|---------|----------|
@@ -551,7 +551,7 @@ LOW    (<60%)    : ████████░░░░░░░░░░░░ 
 
 ---
 
-## 📝 Exemples
+## Exemples
 
 ### Exemple 1 : PC Gaming Milieu de Gamme
 
@@ -600,35 +600,8 @@ Stockage: SSD 256 Go
 
 ---
 
-## ⚠️ Avertissement
 
-<div align="center">
-
-```
-╔═══════════════════════════════════════════════════════════════════╗
-║                    ⚠️  AVERTISSEMENT IMPORTANT  ⚠️                  ║
-╠═══════════════════════════════════════════════════════════════════╣
-║                                                                   ║
-║  Ce système expert est UNIQUEMENT à but ÉDUCATIF et PÉDAGOGIQUE. ║
-║                                                                   ║
-║  Les estimations de prix sont INDICATIVES et peuvent varier       ║
-║  selon :                                                          ║
-║                                                                   ║
-║    • Les promotions et offres en cours                           ║
-║    • La disponibilité des produits                               ║
-║    • Le marché et la région d'achat                              ║
-║    • Les configurations exactes des modèles                      ║
-║                                                                   ║
-║  Consultez les sites marchands pour des prix réels.              ║
-║                                                                   ║
-╚═══════════════════════════════════════════════════════════════════╝
-```
-
-</div>
-
----
-
-## 📄 Licence
+## Licence
 
 Ce projet est développé dans le cadre d'un **TP universitaire** en Intelligence Artificielle.
 
@@ -638,7 +611,7 @@ Ce projet est développé dans le cadre d'un **TP universitaire** en Intelligenc
 
 <div align="center">
 
-**Développé avec 💻 par l'équipe TP IA - Novembre 2025**
+**Développé par h4 - Novembre 2025**
 
 ```
 [SYS_EXPERT v2.0] :: Forward Chaining Inference Engine
