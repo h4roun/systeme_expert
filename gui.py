@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Interface Graphique - Systeme Expert Prix PC Portable
-======================================================
+Interface Graphique - Système Expert Prix PC Portable (Experta)
+================================================================
 
 Ce module fournit une interface graphique (GUI) utilisant Tkinter
-pour le systeme expert d'estimation de prix de PC portable.
+pour le système expert d'estimation de prix de PC portable.
+
+Utilise la bibliothèque Experta pour le moteur d'inférence.
 
 Theme: Hacker / Cyberpunk / Futuriste
 
@@ -14,13 +16,12 @@ Date: Novembre 2025
 """
 
 import tkinter as tk
-from tkinter import ttk, messagebox, scrolledtext
-from typing import List, Tuple
+from tkinter import ttk, messagebox
+from typing import List, Dict
 
-# Importation des modules du systeme expert
-from base_faits import BaseFaits
-from base_regles import BaseRegles
-from moteur_inference import MoteurInference
+# Importation des modules du système expert
+from faits import SpecificationPC, OPTIONS, OPTIONS_BOOLEENNES, obtenir_options
+from regles import SystemeExpertPrixPC
 
 
 # ============================================================
@@ -48,26 +49,19 @@ COLORS = {
 
 class SystemeExpertGUI:
     """
-    Interface graphique pour le systeme expert d'estimation de prix PC.
+    Interface graphique pour le système expert d'estimation de prix PC.
+    Utilise Experta pour l'inférence.
     Theme Hacker / Cyberpunk avec effets futuristes.
     """
     
     def __init__(self):
-        """Initialise l'interface graphique et les composants du systeme expert."""
-        # Initialisation des composants du systeme expert
-        self.base_faits = BaseFaits()
-        self.base_regles = BaseRegles()
-        self.moteur = MoteurInference(self.base_faits, self.base_regles)
-        
-        # Creation de la fenetre principale
+        """Initialise l'interface graphique et les composants du système expert."""
+        # Création de la fenêtre principale
         self.root = tk.Tk()
-        self.root.title("[SYS_EXPERT] :: Prix PC Portable v2.0")
+        self.root.title("[SYS_EXPERT] :: Prix PC Portable v2.0 - EXPERTA")
         self.root.geometry("1000x800")
         self.root.minsize(900, 700)
         self.root.configure(bg=COLORS["bg_dark"])
-        
-        # Configurer le style ttk pour le theme hacker
-        self._configurer_style()
         
         # Variables pour les ComboBox
         self.variables = {}
@@ -75,24 +69,22 @@ class SystemeExpertGUI:
         # Variables pour les Checkbuttons
         self.check_vars = {}
         
+        # Configurer le style ttk
+        self._configurer_style()
+        
         # Construction de l'interface
         self._creer_interface()
         
-        # Afficher l'avertissement au demarrage
+        # Afficher l'avertissement au démarrage
         self._afficher_avertissement()
     
     def _configurer_style(self):
-        """Configure le style ttk pour le theme hacker."""
+        """Configure le style ttk pour le thème hacker."""
         style = ttk.Style()
-        
-        # Configuration generale
         style.theme_use('clam')
         
         # Frame
-        style.configure(
-            "Hacker.TFrame",
-            background=COLORS["bg_dark"]
-        )
+        style.configure("Hacker.TFrame", background=COLORS["bg_dark"])
         
         # LabelFrame
         style.configure(
@@ -117,22 +109,6 @@ class SystemeExpertGUI:
             font=("Consolas", 10)
         )
         
-        # Button
-        style.configure(
-            "Hacker.TButton",
-            background=COLORS["bg_button"],
-            foreground=COLORS["text_primary"],
-            font=("Consolas", 10, "bold"),
-            bordercolor=COLORS["accent"],
-            focuscolor=COLORS["accent"],
-            padding=(15, 8)
-        )
-        style.map(
-            "Hacker.TButton",
-            background=[("active", COLORS["bg_button_hover"])],
-            foreground=[("active", COLORS["text_cyan"])]
-        )
-        
         # Combobox
         style.configure(
             "Hacker.TCombobox",
@@ -144,34 +120,9 @@ class SystemeExpertGUI:
             arrowcolor=COLORS["text_primary"],
             font=("Consolas", 9)
         )
-        style.map(
-            "Hacker.TCombobox",
-            fieldbackground=[("readonly", COLORS["bg_input"])],
-            selectbackground=[("readonly", COLORS["accent"])]
-        )
-        
-        # Checkbutton
-        style.configure(
-            "Hacker.TCheckbutton",
-            background=COLORS["bg_panel"],
-            foreground=COLORS["text_secondary"],
-            font=("Consolas", 10),
-            indicatorcolor=COLORS["bg_input"]
-        )
-        style.map(
-            "Hacker.TCheckbutton",
-            background=[("active", COLORS["bg_panel"])],
-            foreground=[("active", COLORS["text_cyan"])]
-        )
-        
-        # Separator
-        style.configure(
-            "Hacker.TSeparator",
-            background=COLORS["accent"]
-        )
     
     def _creer_interface(self):
-        """Cree tous les elements de l'interface graphique."""
+        """Crée tous les éléments de l'interface graphique."""
         # Frame principal
         main_frame = tk.Frame(self.root, bg=COLORS["bg_dark"])
         main_frame.pack(fill="both", expand=True)
@@ -205,10 +156,10 @@ class SystemeExpertGUI:
         scrollbar.pack(side="right", fill="y")
         self.canvas.pack(side="left", fill="both", expand=True)
         
-        # Banniere
+        # Bannière
         self._creer_banniere()
         
-        # Section des specifications
+        # Section des spécifications
         self._creer_section_specifications()
         
         # Section des options
@@ -217,18 +168,18 @@ class SystemeExpertGUI:
         # Boutons d'action
         self._creer_boutons()
         
-        # Zone de resultats
+        # Zone de résultats
         self._creer_zone_resultats()
         
         # Footer
         self._creer_footer()
     
     def _creer_banniere(self):
-        """Cree la banniere ASCII art style hacker."""
+        """Crée la bannière ASCII art style hacker."""
         banner_frame = tk.Frame(self.scrollable_frame, bg=COLORS["bg_dark"])
         banner_frame.pack(fill="x", padx=10, pady=10)
         
-        # Banniere ASCII art cyberpunk
+        # Bannière ASCII art cyberpunk
         banner = """
     ╔══════════════════════════════════════════════════════════════════════════════════════╗
     ║  ░██████╗██╗   ██╗███████╗████████╗███████╗███╗   ███╗███████╗                        ║
@@ -238,16 +189,16 @@ class SystemeExpertGUI:
     ║  ██████╔╝   ██║   ███████║   ██║   ███████╗██║ ╚═╝ ██║███████╗                        ║
     ║  ╚═════╝    ╚═╝   ╚══════╝   ╚═╝   ╚══════╝╚═╝     ╚═╝╚══════╝                        ║
     ║                                                                                      ║
-    ║  ███████╗██╗  ██╗██████╗ ███████╗██████╗ ████████╗     █████╗ ██╗                     ║
-    ║  ██╔════╝╚██╗██╔╝██╔══██╗██╔════╝██╔══██╗╚══██╔══╝    ██╔══██╗██║                     ║
-    ║  █████╗   ╚███╔╝ ██████╔╝█████╗  ██████╔╝   ██║       ███████║██║                     ║
-    ║  ██╔══╝   ██╔██╗ ██╔═══╝ ██╔══╝  ██╔══██╗   ██║       ██╔══██║██║                     ║
-    ║  ███████╗██╔╝ ██╗██║     ███████╗██║  ██║   ██║       ██║  ██║██║                     ║
-    ║  ╚══════╝╚═╝  ╚═╝╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝       ╚═╝  ╚═╝╚═╝                     ║
+    ║  ███████╗██╗  ██╗██████╗ ███████╗██████╗ ████████╗ █████╗                             ║
+    ║  ██╔════╝╚██╗██╔╝██╔══██╗██╔════╝██╔══██╗╚══██╔══╝██╔══██╗                            ║
+    ║  █████╗   ╚███╔╝ ██████╔╝█████╗  ██████╔╝   ██║   ███████║                            ║
+    ║  ██╔══╝   ██╔██╗ ██╔═══╝ ██╔══╝  ██╔══██╗   ██║   ██╔══██║                            ║
+    ║  ███████╗██╔╝ ██╗██║     ███████╗██║  ██║   ██║   ██║  ██║                            ║
+    ║  ╚══════╝╚═╝  ╚═╝╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝                            ║
     ║                                                                                      ║
     ║  ┌─────────────────────────────────────────────────────────────────────────────────┐ ║
-    ║  │  [SYSTEM]  ESTIMATION PRIX PC PORTABLE  ::  FORWARD CHAINING ENGINE v2.0       │ ║
-    ║  │  [STATUS]  ONLINE  ::  READY FOR INPUT  ::  AI INFERENCE MODULE LOADED         │ ║
+    ║  │  [SYSTEM]  ESTIMATION PRIX PC PORTABLE  ::  EXPERTA ENGINE v2.0                │ ║
+    ║  │  [STATUS]  ONLINE  ::  RETE ALGORITHM  ::  KNOWLEDGE ENGINE LOADED             │ ║
     ║  └─────────────────────────────────────────────────────────────────────────────────┘ ║
     ╚══════════════════════════════════════════════════════════════════════════════════════╝
 """
@@ -259,7 +210,7 @@ class SystemeExpertGUI:
         inner_frame = tk.Frame(container, bg=COLORS["bg_dark"])
         inner_frame.pack(fill="x")
         
-        # Label pour la banniere
+        # Label pour la bannière
         banner_label = tk.Label(
             inner_frame,
             text=banner,
@@ -270,11 +221,11 @@ class SystemeExpertGUI:
         )
         banner_label.pack(padx=5, pady=5)
         
-        # Barre de status animee
+        # Barre de status
         status_frame = tk.Frame(self.scrollable_frame, bg=COLORS["bg_panel"])
         status_frame.pack(fill="x", padx=12, pady=(0, 10))
         
-        status_text = "[>>] TERMINAL READY  |  [>>] BASE DE REGLES: 8 RULES LOADED  |  [>>] INFERENCE ENGINE: ACTIVE"
+        status_text = "[>>] EXPERTA READY  |  [>>] RETE ALGORITHM ACTIVE  |  [>>] KNOWLEDGE ENGINE: LOADED"
         status_label = tk.Label(
             status_frame,
             text=status_text,
@@ -285,7 +236,7 @@ class SystemeExpertGUI:
         status_label.pack(pady=5)
     
     def _creer_section_specifications(self):
-        """Cree la section des specifications principales."""
+        """Crée la section des spécifications principales."""
         # Container avec bordure verte
         container = tk.Frame(self.scrollable_frame, bg=COLORS["accent"], padx=1, pady=1)
         container.pack(fill="x", padx=10, pady=5)
@@ -306,27 +257,27 @@ class SystemeExpertGUI:
         )
         title_label.pack(anchor="w")
         
-        # Grille des specifications
+        # Grille des spécifications
         grid_frame = tk.Frame(specs_frame, bg=COLORS["bg_panel"])
         grid_frame.pack(fill="x")
         
-        # Liste des specifications avec leurs options
+        # Liste des spécifications
         specifications = [
-            ("SCREEN_SIZE", "taille_ecran", self.base_faits.options_taille_ecran),
-            ("USAGE_TYPE", "usage", self.base_faits.options_usage),
-            ("CPU_MODEL", "processeur", self.base_faits.options_processeur),
-            ("CPU_GEN", "generation_cpu", self.base_faits.options_generation_cpu),
-            ("RAM_SIZE", "ram", self.base_faits.options_ram),
-            ("STORAGE", "stockage", self.base_faits.options_stockage),
-            ("GPU_TYPE", "carte_graphique", self.base_faits.options_carte_graphique),
-            ("DISPLAY_RES", "ecran", self.base_faits.options_ecran),
-            ("REFRESH_RATE", "taux_rafraichissement", self.base_faits.options_taux_rafraichissement),
-            ("BRAND", "marque", self.base_faits.options_marque),
-            ("WEIGHT", "poids", self.base_faits.options_poids),
+            ("SCREEN_SIZE", "taille_ecran"),
+            ("USAGE_TYPE", "usage"),
+            ("CPU_MODEL", "processeur"),
+            ("CPU_GEN", "generation_cpu"),
+            ("RAM_SIZE", "ram"),
+            ("STORAGE", "stockage"),
+            ("GPU_TYPE", "carte_graphique"),
+            ("DISPLAY_RES", "ecran"),
+            ("REFRESH_RATE", "taux_rafraichissement"),
+            ("BRAND", "marque"),
+            ("WEIGHT", "poids"),
         ]
         
-        # Creer les widgets en 2 colonnes
-        for i, (label_text, var_name, options) in enumerate(specifications):
+        # Créer les widgets en 2 colonnes
+        for i, (label_text, var_name) in enumerate(specifications):
             row = i // 2
             col = (i % 2) * 2
             
@@ -335,7 +286,7 @@ class SystemeExpertGUI:
             input_container.grid(row=row, column=col, sticky="ew", padx=10, pady=8)
             grid_frame.columnconfigure(col, weight=1)
             
-            # Label avec prefixe style terminal
+            # Label avec préfixe style terminal
             label = tk.Label(
                 input_container,
                 text=f">{label_text}:",
@@ -345,7 +296,8 @@ class SystemeExpertGUI:
             )
             label.pack(anchor="w")
             
-            # ComboBox avec style
+            # ComboBox
+            options = obtenir_options(var_name)
             self.variables[var_name] = tk.StringVar()
             combo = ttk.Combobox(
                 input_container,
@@ -356,16 +308,17 @@ class SystemeExpertGUI:
                 font=("Consolas", 9)
             )
             combo.pack(anchor="w", pady=(3, 0))
-            combo.current(0)
+            if options:
+                combo.current(0)
             
-            # Configuration du style de la combobox
+            # Style de la combobox
             combo.option_add('*TCombobox*Listbox.background', COLORS["bg_input"])
             combo.option_add('*TCombobox*Listbox.foreground', COLORS["text_primary"])
             combo.option_add('*TCombobox*Listbox.selectBackground', COLORS["accent"])
             combo.option_add('*TCombobox*Listbox.selectForeground', COLORS["bg_dark"])
     
     def _creer_section_options(self):
-        """Cree la section des options supplementaires (checkboxes)."""
+        """Crée la section des options supplémentaires (checkboxes)."""
         # Container avec bordure cyan
         container = tk.Frame(self.scrollable_frame, bg=COLORS["accent_cyan"], padx=1, pady=1)
         container.pack(fill="x", padx=10, pady=5)
@@ -387,7 +340,7 @@ class SystemeExpertGUI:
         check_frame = tk.Frame(options_frame, bg=COLORS["bg_panel"])
         check_frame.pack(fill="x")
         
-        # Liste des options booleennes
+        # Liste des options booléennes
         options_bool = [
             ("NUMPAD", "pave_numerique"),
             ("BACKLIT_KB", "clavier_retroeclaire"),
@@ -397,7 +350,7 @@ class SystemeExpertGUI:
             ("FINGERPRINT", "lecteur_empreinte"),
         ]
         
-        # Creer les checkbuttons en 3 colonnes
+        # Créer les checkbuttons en 3 colonnes
         for i, (label_text, var_name) in enumerate(options_bool):
             row = i // 3
             col = i % 3
@@ -420,7 +373,7 @@ class SystemeExpertGUI:
             check.grid(row=row, column=col, sticky="w", padx=15, pady=5)
     
     def _creer_boutons(self):
-        """Cree les boutons d'action."""
+        """Crée les boutons d'action."""
         boutons_frame = tk.Frame(self.scrollable_frame, bg=COLORS["bg_dark"])
         boutons_frame.pack(fill="x", padx=10, pady=15)
         
@@ -446,7 +399,7 @@ class SystemeExpertGUI:
         )
         btn_estimer.pack(side="left", padx=5)
         
-        # Bouton Reinitialiser - Jaune
+        # Bouton Réinitialiser - Jaune
         btn_reset = tk.Button(
             boutons_frame,
             text="[ RESET SYSTEM ]",
@@ -459,18 +412,18 @@ class SystemeExpertGUI:
         )
         btn_reset.pack(side="left", padx=5)
         
-        # Bouton Afficher les regles - Cyan
-        btn_regles = tk.Button(
+        # Bouton Test - Cyan
+        btn_test = tk.Button(
             boutons_frame,
-            text="[ VIEW RULES ]",
+            text="[ RUN TEST ]",
             bg=COLORS["text_cyan"],
             fg=COLORS["bg_dark"],
             activebackground="#00cccc",
             activeforeground=COLORS["bg_dark"],
-            command=self._afficher_regles,
+            command=self._lancer_test,
             **btn_config
         )
-        btn_regles.pack(side="left", padx=5)
+        btn_test.pack(side="left", padx=5)
         
         # Bouton Aide - Orange
         btn_aide = tk.Button(
@@ -486,7 +439,7 @@ class SystemeExpertGUI:
         btn_aide.pack(side="left", padx=5)
     
     def _creer_zone_resultats(self):
-        """Cree la zone d'affichage des resultats."""
+        """Crée la zone d'affichage des résultats."""
         # Container avec bordure
         container = tk.Frame(self.scrollable_frame, bg=COLORS["text_primary"], padx=2, pady=2)
         container.pack(fill="both", expand=True, padx=10, pady=5)
@@ -497,7 +450,7 @@ class SystemeExpertGUI:
         # Titre de section
         title_label = tk.Label(
             resultats_frame,
-            text="[ OUTPUT TERMINAL :: ANALYSIS RESULTS ]",
+            text="[ OUTPUT TERMINAL :: EXPERTA INFERENCE RESULTS ]",
             font=("Consolas", 12, "bold"),
             fg=COLORS["text_primary"],
             bg=COLORS["bg_panel"]
@@ -542,22 +495,23 @@ class SystemeExpertGUI:
         
         welcome_msg = """
 ╔══════════════════════════════════════════════════════════════════════╗
-║                    SYSTEME EXPERT :: TERMINAL                        ║
+║                 EXPERTA EXPERT SYSTEM :: TERMINAL                    ║
 ╚══════════════════════════════════════════════════════════════════════╝
 
-[SYSTEM] Initialisation complete...
-[STATUS] En attente des specifications...
+[SYSTEM] Experta Knowledge Engine initialisé...
+[RETE] Algorithme RETE prêt pour le pattern matching...
+[STATUS] En attente des spécifications...
 
-> Selectionnez les caracteristiques du PC portable
-> Cliquez sur [ EXECUTE ANALYSIS ] pour lancer l'estimation
+> Sélectionnez les caractéristiques du PC portable
+> Cliquez sur [ EXECUTE ANALYSIS ] pour lancer l'inférence
 
-[READY] Systeme pret pour l'analyse_
+[READY] Système prêt pour l'analyse_
 """
         self.resultats_text.insert(tk.END, welcome_msg, "green")
         self.resultats_text.config(state=tk.DISABLED)
     
     def _creer_footer(self):
-        """Cree le footer."""
+        """Crée le footer."""
         footer_frame = tk.Frame(self.scrollable_frame, bg=COLORS["bg_dark"])
         footer_frame.pack(fill="x", padx=10, pady=10)
         
@@ -573,7 +527,7 @@ class SystemeExpertGUI:
         
         credit_label = tk.Label(
             footer_frame,
-            text="[SYS_EXPERT v2.0] :: TP Universitaire - Intelligence Artificielle :: 2025",
+            text="[SYS_EXPERT v2.0] :: EXPERTA Engine :: TP Universitaire - Intelligence Artificielle :: 2025",
             font=("Consolas", 9),
             fg=COLORS["text_gray"],
             bg=COLORS["bg_dark"]
@@ -581,8 +535,7 @@ class SystemeExpertGUI:
         credit_label.pack()
     
     def _afficher_avertissement(self):
-        """Affiche l'avertissement au demarrage."""
-        # Creer une fenetre personnalisee pour l'avertissement
+        """Affiche l'avertissement au démarrage."""
         warn_window = tk.Toplevel(self.root)
         warn_window.title("[WARNING]")
         warn_window.geometry("500x350")
@@ -591,7 +544,7 @@ class SystemeExpertGUI:
         warn_window.transient(self.root)
         warn_window.grab_set()
         
-        # Centrer la fenetre
+        # Centrer la fenêtre
         warn_window.update_idletasks()
         x = (warn_window.winfo_screenwidth() - 500) // 2
         y = (warn_window.winfo_screenheight() - 350) // 2
@@ -609,19 +562,19 @@ class SystemeExpertGUI:
 ║           ⚠️  AVERTISSEMENT IMPORTANT  ⚠️          ║
 ╚═══════════════════════════════════════════════════╝
 
-[WARNING] Ce systeme expert est UNIQUEMENT
-          a but EDUCATIF et PEDAGOGIQUE.
+[WARNING] Ce système expert est UNIQUEMENT
+          à but ÉDUCATIF et PÉDAGOGIQUE.
 
 [INFO] Les estimations de prix sont INDICATIVES
        et peuvent varier selon :
 
        > Les promotions et offres en cours
-       > La disponibilite des produits
-       > Le marche et la region d'achat
+       > La disponibilité des produits
+       > Le marché et la région d'achat
        > Les configurations exactes
 
-[NOTICE] Consultez les sites marchands
-         pour des prix reels.
+[ENGINE] Utilise la bibliothèque EXPERTA
+         (inspirée de CLIPS)
 
 """
         
@@ -650,56 +603,110 @@ class SystemeExpertGUI:
         )
         btn_ok.pack(pady=10)
     
-    def _collecter_specifications(self):
-        """Collecte les specifications depuis l'interface graphique."""
-        self.base_faits.reinitialiser()
+    def _collecter_specifications(self) -> dict:
+        """Collecte les spécifications depuis l'interface graphique."""
+        specs = {}
         
+        # Spécifications principales
         for var_name, var in self.variables.items():
-            self.base_faits.ajouter_fait(var_name, var.get())
+            specs[var_name] = var.get()
         
+        # Options booléennes
         for var_name, var in self.check_vars.items():
-            self.base_faits.ajouter_fait(var_name, var.get())
+            specs[var_name] = var.get()
+        
+        return specs
     
     def _lancer_estimation(self):
-        """Lance l'estimation de prix."""
-        self._collecter_specifications()
-        estimations = self.moteur.inferer()
+        """Lance l'estimation de prix avec Experta."""
+        specs = self._collecter_specifications()
+        
+        # Créer et exécuter le moteur Experta
+        engine = SystemeExpertPrixPC()
+        engine.reset()
+        engine.declare(SpecificationPC(**specs))
+        engine.run()
+        
+        # Récupérer et afficher les résultats
+        estimations = engine.obtenir_estimations()
         self._afficher_resultats(estimations)
     
-    def _afficher_resultats(self, estimations: List[Tuple[str, float, str, int, int]]):
-        """Affiche les resultats de l'estimation avec style futuriste."""
+    def _lancer_test(self):
+        """Lance un test avec des valeurs prédéfinies."""
+        # Spécifications de test (PC Gaming)
+        specs_test = {
+            "taille_ecran": "15.6 pouces",
+            "usage": "Gaming",
+            "processeur": "Intel Core i7",
+            "generation_cpu": "Derniere generation (2024-2025)",
+            "ram": "16 Go",
+            "stockage": "SSD 1 To",
+            "carte_graphique": "NVIDIA RTX milieu de gamme (RTX 3060, 4060)",
+            "ecran": "Full HD (1920x1080)",
+            "taux_rafraichissement": "144 Hz",
+            "marque": "ASUS",
+            "poids": "Standard (plus de 2 kg)",
+            "pave_numerique": True,
+            "clavier_retroeclaire": True,
+            "clavier_rgb": True,
+            "thunderbolt": False,
+            "webcam_hd": True,
+            "lecteur_empreinte": False
+        }
+        
+        # Mettre à jour l'interface avec les valeurs de test
+        for var_name, valeur in specs_test.items():
+            if var_name in self.variables:
+                self.variables[var_name].set(valeur)
+            if var_name in self.check_vars:
+                self.check_vars[var_name].set(valeur)
+        
+        # Créer et exécuter le moteur Experta
+        engine = SystemeExpertPrixPC()
+        engine.reset()
+        engine.declare(SpecificationPC(**specs_test))
+        engine.run()
+        
+        # Afficher les résultats
+        estimations = engine.obtenir_estimations()
+        self._afficher_resultats(estimations, test_mode=True)
+    
+    def _afficher_resultats(self, estimations: List[Dict], test_mode: bool = False):
+        """Affiche les résultats de l'estimation avec style futuriste."""
         self.resultats_text.config(state=tk.NORMAL)
         self.resultats_text.delete(1.0, tk.END)
         
-        # En-tete
+        # En-tête
         header = """
 ╔══════════════════════════════════════════════════════════════════════╗
-║              ANALYSIS COMPLETE :: RESULTS OUTPUT                     ║
+║           EXPERTA INFERENCE COMPLETE :: RESULTS OUTPUT               ║
 ╚══════════════════════════════════════════════════════════════════════╝
 """
         self.resultats_text.insert(tk.END, header, "header")
         
-        self.resultats_text.insert(tk.END, "\n[PROCESSING] Analyse des specifications...\n", "cyan")
-        self.resultats_text.insert(tk.END, "[INFERENCE] Moteur de chainage avant active...\n", "cyan")
-        self.resultats_text.insert(tk.END, "[MATCHING] Comparaison avec la base de regles...\n\n", "cyan")
+        if test_mode:
+            self.resultats_text.insert(tk.END, "\n[MODE] Test avec valeurs prédéfinies (PC Gaming)\n", "yellow")
+        
+        self.resultats_text.insert(tk.END, "\n[EXPERTA] Moteur d'inférence exécuté...\n", "cyan")
+        self.resultats_text.insert(tk.END, "[RETE] Pattern matching terminé...\n", "cyan")
+        self.resultats_text.insert(tk.END, "[RULES] Évaluation des règles complète...\n\n", "cyan")
         
         if not estimations:
             self.resultats_text.insert(tk.END, "╔════════════════════════════════════════════════════════════════╗\n", "red")
-            self.resultats_text.insert(tk.END, "║  [ERROR] AUCUNE CORRESPONDANCE TROUVEE                        ║\n", "red")
+            self.resultats_text.insert(tk.END, "║  [ERROR] AUCUNE CORRESPONDANCE TROUVÉE                        ║\n", "red")
             self.resultats_text.insert(tk.END, "╚════════════════════════════════════════════════════════════════╝\n\n", "red")
             self.resultats_text.insert(tk.END, "[ANALYSIS] Causes possibles:\n", "yellow")
-            self.resultats_text.insert(tk.END, "  > Specifications inhabituelles\n", "gray")
+            self.resultats_text.insert(tk.END, "  > Spécifications inhabituelles\n", "gray")
             self.resultats_text.insert(tk.END, "  > Combinaison de composants atypique\n", "gray")
-            self.resultats_text.insert(tk.END, "  > Base de regles incomplete\n\n", "gray")
-            self.resultats_text.insert(tk.END, "[SUGGEST] Consultez les sites marchands directement.\n", "yellow")
+            self.resultats_text.insert(tk.END, "  > Règles excluantes activées\n\n", "gray")
         else:
             nb_resultats = min(3, len(estimations))
-            self.resultats_text.insert(tk.END, f"[SUCCESS] {nb_resultats} ESTIMATION(S) TROUVEE(S)\n\n", "green")
+            self.resultats_text.insert(tk.END, f"[SUCCESS] {nb_resultats} ESTIMATION(S) TROUVÉE(S)\n\n", "green")
             
-            for i, (nom, confiance, description, prix_min, prix_max) in enumerate(estimations[:nb_resultats], 1):
-                pourcentage = confiance * 100
+            for i, est in enumerate(estimations[:nb_resultats], 1):
+                pourcentage = est["confiance"] * 100
                 
-                # Determiner la couleur selon la confiance
+                # Déterminer la couleur selon la confiance
                 if pourcentage >= 80:
                     conf_color = "green"
                     indicator = "████████████████████"
@@ -714,15 +721,15 @@ class SystemeExpertGUI:
                     level = "LOW"
                 
                 # Formatage du prix
-                if prix_max >= 10000:
-                    prix_str = f"> {prix_min} EUR"
+                if est["prix_max"] >= 10000:
+                    prix_str = f"> {est['prix_min']} EUR"
                 else:
-                    prix_str = f"{prix_min} - {prix_max} EUR"
+                    prix_str = f"{est['prix_min']} - {est['prix_max']} EUR"
                 
-                # Affichage du resultat
+                # Affichage du résultat
                 self.resultats_text.insert(tk.END, f"┌──────────────────────────────────────────────────────────────┐\n", conf_color)
                 self.resultats_text.insert(tk.END, f"│  RESULT #{i}: ", "white")
-                self.resultats_text.insert(tk.END, f"{nom.upper()}\n", conf_color)
+                self.resultats_text.insert(tk.END, f"{est['gamme'].upper()}\n", conf_color)
                 self.resultats_text.insert(tk.END, f"├──────────────────────────────────────────────────────────────┤\n", conf_color)
                 self.resultats_text.insert(tk.END, f"│  [PRICE RANGE]  ", "gray")
                 self.resultats_text.insert(tk.END, f"{prix_str}\n", "white")
@@ -732,30 +739,28 @@ class SystemeExpertGUI:
                 self.resultats_text.insert(tk.END, f"│  [INDICATOR]    ", "gray")
                 self.resultats_text.insert(tk.END, f"{indicator}\n", conf_color)
                 self.resultats_text.insert(tk.END, f"│  [INFO]         ", "gray")
-                self.resultats_text.insert(tk.END, f"{description}\n", "white")
+                self.resultats_text.insert(tk.END, f"{est['description']}\n", "white")
                 self.resultats_text.insert(tk.END, f"└──────────────────────────────────────────────────────────────┘\n\n", conf_color)
         
         # Footer
         self.resultats_text.insert(tk.END, "═" * 70 + "\n", "gray")
         self.resultats_text.insert(tk.END, "[NOTICE] Cette estimation est INDICATIVE uniquement.\n", "yellow")
-        self.resultats_text.insert(tk.END, "[END] Analyse terminee_\n", "green")
+        self.resultats_text.insert(tk.END, "[ENGINE] Powered by EXPERTA (Python Expert System Library)\n", "cyan")
+        self.resultats_text.insert(tk.END, "[END] Analyse terminée_\n", "green")
         
         self.resultats_text.config(state=tk.DISABLED)
     
     def _reinitialiser(self):
-        """Reinitialise le formulaire."""
-        # Remettre les ComboBox a la premiere valeur
+        """Réinitialise le formulaire."""
+        # Remettre les ComboBox à la première valeur
         for var_name, var in self.variables.items():
-            options = getattr(self.base_faits, f"options_{var_name}", None)
+            options = obtenir_options(var_name)
             if options:
                 var.set(options[0])
         
-        # Decocher toutes les checkboxes
+        # Décocher toutes les checkboxes
         for var in self.check_vars.values():
             var.set(False)
-        
-        # Reinitialiser la base de faits
-        self.base_faits.reinitialiser()
         
         # Afficher message de reset
         self.resultats_text.config(state=tk.NORMAL)
@@ -766,75 +771,20 @@ class SystemeExpertGUI:
 ║                    SYSTEM RESET COMPLETE                             ║
 ╚══════════════════════════════════════════════════════════════════════╝
 
-[RESET] Tous les parametres ont ete reinitialises...
-[STATUS] Base de faits videe...
-[STATUS] Interface remise a zero...
+[RESET] Tous les paramètres ont été réinitialisés...
+[EXPERTA] Knowledge Engine prêt pour nouvelle inférence...
+[STATUS] Interface remise à zéro...
 
-[READY] Systeme pret pour une nouvelle analyse_
+[READY] Système prêt pour une nouvelle analyse_
 """
         self.resultats_text.insert(tk.END, reset_msg, "yellow")
         self.resultats_text.config(state=tk.DISABLED)
-    
-    def _afficher_regles(self):
-        """Affiche les regles dans une nouvelle fenetre."""
-        regles_window = tk.Toplevel(self.root)
-        regles_window.title("[RULES DATABASE]")
-        regles_window.geometry("750x550")
-        regles_window.configure(bg=COLORS["bg_dark"])
-        
-        # Container
-        container = tk.Frame(regles_window, bg=COLORS["accent"], padx=2, pady=2)
-        container.pack(fill="both", expand=True, padx=10, pady=10)
-        
-        inner = tk.Frame(container, bg=COLORS["bg_dark"])
-        inner.pack(fill="both", expand=True)
-        
-        # Zone de texte
-        text_area = tk.Text(
-            inner,
-            font=("Consolas", 10),
-            bg=COLORS["bg_dark"],
-            fg=COLORS["text_primary"],
-            wrap=tk.WORD,
-            padx=10,
-            pady=10
-        )
-        text_area.pack(fill="both", expand=True)
-        
-        # Scrollbar
-        scrollbar = tk.Scrollbar(text_area, command=text_area.yview)
-        scrollbar.pack(side="right", fill="y")
-        text_area.config(yscrollcommand=scrollbar.set)
-        
-        # Afficher les regles
-        header = """
-╔══════════════════════════════════════════════════════════════════════╗
-║                   RULES DATABASE :: SYSTEME EXPERT                   ║
-╚══════════════════════════════════════════════════════════════════════╝
-"""
-        text_area.insert(tk.END, header)
-        text_area.insert(tk.END, f"\n[INFO] Nombre de regles chargees: {self.base_regles.nombre_regles()}\n\n")
-        
-        for i, regle in enumerate(self.base_regles.obtenir_regles(), 1):
-            prix_str = f"{regle['prix_min']} - {regle['prix_max']} EUR"
-            if regle['prix_max'] >= 10000:
-                prix_str = f"> {regle['prix_min']} EUR"
-            
-            text_area.insert(tk.END, f"┌─────────────────────────────────────────────────────────────┐\n")
-            text_area.insert(tk.END, f"│ RULE #{i}: {regle['nom'].upper()}\n")
-            text_area.insert(tk.END, f"├─────────────────────────────────────────────────────────────┤\n")
-            text_area.insert(tk.END, f"│ [PRICE]      {prix_str}\n")
-            text_area.insert(tk.END, f"│ [CONFIDENCE] {regle['confiance_base'] * 100:.0f}%\n")
-            text_area.insert(tk.END, f"│ [DESC]       {regle['description']}\n")
-            text_area.insert(tk.END, f"└─────────────────────────────────────────────────────────────┘\n\n")
-        
-        text_area.config(state=tk.DISABLED)
     
     def _afficher_aide(self):
         """Affiche l'aide."""
         aide_window = tk.Toplevel(self.root)
         aide_window.title("[HELP TERMINAL]")
-        aide_window.geometry("600x500")
+        aide_window.geometry("600x550")
         aide_window.configure(bg=COLORS["bg_dark"])
         
         # Container
@@ -849,31 +799,34 @@ class SystemeExpertGUI:
 ║                    HELP :: USER MANUAL                       ║
 ╚══════════════════════════════════════════════════════════════╝
 
-[USAGE] Comment utiliser le systeme:
+[USAGE] Comment utiliser le système:
 
-  1. Selectionnez les specifications dans les menus deroulants
-  2. Cochez les options supplementaires si presentes
+  1. Sélectionnez les spécifications dans les menus déroulants
+  2. Cochez les options supplémentaires si présentes
   3. Cliquez sur [ EXECUTE ANALYSIS ]
-  4. Les resultats s'affichent dans le terminal
+  4. Les résultats s'affichent dans le terminal
 
-[LEGEND] Interpretation des resultats:
+[LEGEND] Interprétation des résultats:
 
-  > HIGH   (80-100%) : Forte probabilite - Fiable
-  > MEDIUM (60-80%)  : Probabilite moyenne
-  > LOW    (<60%)    : Faible probabilite
+  > HIGH   (80-100%) : Forte probabilité - Fiable
+  > MEDIUM (60-80%)  : Probabilité moyenne
+  > LOW    (<60%)    : Faible probabilité
 
 [BUTTONS] Actions disponibles:
 
-  > [ EXECUTE ANALYSIS ] : Lance l'estimation
-  > [ RESET SYSTEM ]     : Reinitialise le formulaire
-  > [ VIEW RULES ]       : Affiche la base de regles
+  > [ EXECUTE ANALYSIS ] : Lance l'inférence Experta
+  > [ RESET SYSTEM ]     : Réinitialise le formulaire
+  > [ RUN TEST ]         : Test avec valeurs prédéfinies
   > [ HELP ]             : Affiche cette aide
 
-[WARNING] Ce systeme est a but educatif uniquement.
-          Les prix sont indicatifs et variables.
+[EXPERTA] Bibliothèque utilisée:
+
+  Experta est une bibliothèque Python pour construire
+  des systèmes experts, inspirée de CLIPS.
+  Elle utilise l'algorithme RETE pour le pattern matching.
 
 ╔══════════════════════════════════════════════════════════════╗
-║  [SYS_EXPERT v2.0] :: Forward Chaining Inference Engine     ║
+║  [SYS_EXPERT v2.0] :: EXPERTA Knowledge Engine              ║
 ╚══════════════════════════════════════════════════════════════╝
 """
         
@@ -893,7 +846,7 @@ class SystemeExpertGUI:
 
 
 # ============================================================
-# POINT D'ENTREE
+# POINT D'ENTRÉE
 # ============================================================
 
 if __name__ == "__main__":
